@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Registration</title>
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F3EBF6;
+            font-family: 'Ubuntu', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        h2 {
+            color: #8C55AA;
+            font-weight: bold;
+            font-size: 23px;
+            margin-bottom: 20px;
+        }
+
+        .register-card {
+            background-color: #FFFFFF;
+            width: 500px;
+            height: auto;
+            border-radius: 2.5em;
+            box-shadow: 0px 11px 35px 2px rgba(0, 0, 0, 0.14);
+            text-align: center;
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+
+        .register-card input[type="text"],
+        .register-card input[type="password"],
+        .register-card input[type="tel"] {
+            width: 76%;
+            color: rgb(30, 35, 37);
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 1px;
+            background: rgba(29, 28, 28, 0.04);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            outline: none;
+            box-sizing: border-box;
+            border: 2px solid rgba(0, 0, 0, 0.02);
+            margin-bottom: 27px;
+            margin-left: 2%;
+            text-align: center;
+            font-family: 'Ubuntu', sans-serif;
+        }
+
+        .register-card input[type="text"]:focus,
+        .register-card input[type="password"]:focus,
+        .register-card input[type="tel"]:focus {
+            border: 2px solid rgba(0, 0, 0, 0.18) !important;
+        }
+
+        .register-card label {
+            color: #8C55AA;
+            font-size: 14px;
+            font-weight: 900;
+            display: block;
+            margin-bottom: 8px;
+            margin-top: -10px;
+        }
+
+        .register-card .btn {
+            cursor: pointer;
+            border-radius: 5em;
+            color: #fff;
+            background: linear-gradient(to right, #9C27B0, #E040FB);
+            border: 0;
+            padding-left: 40px;
+            padding-right: 40px;
+            padding-bottom: 10px;
+            padding-top: 10px;
+            font-family: 'Ubuntu', sans-serif;
+            font-size: 13px;
+            box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.04);
+            width: 90%;
+            margin: 10px auto;
+        }
+
+        .register-card .forgot {
+            text-shadow: 0px 0px 3px rgba(117, 117, 117, 0.12);
+            color: #E1BEE7;
+            padding-top: 15px;
+        }
+
+        .register-card a {
+            text-shadow: 0px 0px 3px rgba(117, 117, 117, 0.12);
+            color: #E1BEE7;
+            text-decoration: none;
+        }
+
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .form-row > div {
+            width: 48%;
+        }
+
+        @media (max-width: 600px) {
+            .register-card {
+                border-radius: 0px;
+                width: 90%;
+            }
+
+            .form-row > div {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>Employee Registration</h2>
+    <div class="register-card">
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+        <form method="POST" action="/register">
+            {{ form.hidden_tag() }}
+
+            <div class="form-row">
+                <div>
+                    <label for="employee_name">{{ form.employee_name.label }}</label>
+                    {{ form.employee_name(size=32) }}
+                </div>
+                <div>
+                    <label for="employee_id">{{ form.employee_id.label }}</label>
+                    {{ form.employee_id(size=32) }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label for="phone_number">{{ form.phone_number.label }}</label>
+                    {{ form.phone_number(size=32) }}
+                </div>
+                <div>
+                    <label for="address">{{ form.address.label }}</label>
+                    {{ form.address(size=32) }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label for="username">{{ form.username.label }}</label>
+                    {{ form.username(size=32) }}
+                </div>
+                <div>
+                    <label for="password">{{ form.password.label }}</label>
+                    {{ form.password(size=32) }}
+                </div>
+            </div>
+
+            {{ form.submit(class="btn") }}
+        </form>        
+        <p class="forgot">Already have an account? <a href="/login">Login here</a></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .card {
+            margin: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .download-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+        .header {
+            display: flex;
+            align-items: flex-start; 
+            justify-content: center;
+            margin-bottom: 5px;
+            margin-top: 5px;
+        }
+        .header img {
+            margin-right: 10px;
+            height: 57px;
+            width: 57px;
+        }
+        .header h1 {
+            font-size: 3.0em;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            font-weight: bold;
+            margin: 0;
+        }
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                align-items: center;
+            }
+            .header img {
+                margin-bottom: 10px;
+            }
+        }
+        .logout-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            margin-left: 10px;
+        }
+        .backBtn {
+            position: absolute;
+            top: 10px;
+        }
+        .filter-container {
+            position: absolute;
+            top: 10px;
+            right: 150px;
+            display: flex;
+            align-items: center;
+        }
+        .filter-container input {
+            margin-left: 10px;
+        }
+        .search-bar {
+            position: absolute;
+            right: 170px;
+            padding: 5px;
+            width: 145px;
+            border: 1px solid black;
+            border-radius: 15px;
+            background: transparent;
+        }
+    </style>
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            const { jsPDF } = window.jspdf;
+
+            function downloadPDF(cardId) {
+                const card = document.getElementById(cardId);
+                const doc = new jsPDF();
+
+                const name = card.querySelector('.card-title').innerText.replace('Name: ', '');
+                const age = card.querySelectorAll('.card-text')[0].innerText.replace('Age: ', '');
+                const test = card.querySelectorAll('.card-text')[1].innerText.replace('Test: ', '');
+                const date = card.querySelectorAll('.card-text')[2].innerText.replace('Date: ', '');
+                const refBy = card.querySelectorAll('.card-text')[3].innerText.replace('Referred by: ', '');
+                const reportTextElement = card.querySelectorAll('.card-text')[4];
+                const reportText = reportTextElement ? reportTextElement.innerText.replace('Report: ', '') : '';
+                const additionalNotesElement = card.querySelectorAll('.card-text')[5];
+                const additionalNotes = additionalNotesElement ? additionalNotesElement.innerText.replace('Additional Notes: ', '') : '';
+
+                const img = new Image();
+                img.src = '/static/somu.png';
+                img.onload = function () {
+                    const imgWidth = 30;
+                    const imgHeight = 25;
+
+                    const startX = 13;
+                    const headingX = 50;
+                    const startY = 5; // Move header content to the top
+
+                    // Header
+                    doc.addImage(img, 'PNG', startX, startY, imgWidth, imgHeight);
+                    doc.setFontSize(34);
+                    doc.setFont("times", "bold");
+                    doc.text('SOMU DIAGNOSTICS', headingX, startY + imgHeight / 2, null, null, 'left');
+
+                    doc.setFontSize(10);
+                    doc.setFont("times", "normal");
+                    doc.text('Name: ' + name, 10, startY + 30);
+                    doc.text('Sample Date: ' + date, 140, startY + 30);
+                    doc.text('Age & Sex: ' + age, 10, startY + 40);
+                    doc.text('Report Date: ' + date, 140, startY + 40);
+                    doc.text('Referred by: ' + refBy, 10, startY + 50);
+                    doc.text('Test: ' + test, 10, startY + 60);
+
+                    doc.line(10, startY + 70, 200, startY + 70);
+
+                    let yPosition = startY + 80;
+
+                    if (reportText) {
+                        try {
+                            // Check if the reportText is in JSON format for table
+                            const report = JSON.parse(reportText.replace(/'/g, '"'));
+                            if (typeof report === 'object' && !Array.isArray(report) && report !== null) {
+                                const parameters = Object.keys(report);
+
+                                doc.text('Parameters', 10, yPosition);
+                                doc.text('Results', 80, yPosition);
+                                doc.text('Reference Values', 120, yPosition);
+                                doc.text('Units', 170, yPosition);
+                                doc.line(10, yPosition + 2, 200, yPosition + 2);
+
+                                yPosition += 10;
+                                parameters.forEach(param => {
+                                    const value = report[param].value || '-';
+                                    const reference = report[param].reference || '-';
+                                    const units = report[param].units || '-';
+                                    doc.text(param, 10, yPosition);
+                                    doc.text(value, 80, yPosition);
+                                    doc.text(reference, 120, yPosition);
+                                    doc.text(units, 170, yPosition);
+                                    yPosition += 10;
+                                });
+                            } else {
+                                throw new Error('Plain text report');
+                            }
+                        } catch (error) {
+                            // Handle plain text report
+                            const reportLines = reportText.split('\n');
+                            reportLines.forEach(line => {
+                                doc.text(line, 10, yPosition);
+                                yPosition += 10;
+                            });
+                        }
+                    }
+
+                    // Additional Notes
+                    if (additionalNotes) {
+                        const additionalNotesLines = additionalNotes.split('\n');
+                        yPosition += 10;
+                        doc.text('Additional Notes:', 10, yPosition);
+                        yPosition += 10;
+                        additionalNotesLines.forEach(line => {
+                            doc.text(line, 10, yPosition);
+                            yPosition += 10;
+                        });
+                    }
+
+                    // Footer
+                    doc.line(10, 260, 200, 260);
+                    doc.text('Ramalayam Street, Gummaluru, Poduru (M), West Godavari Dist., A.P - 534267', 105, 270, null, null, 'center');
+                    doc.text('Somu IT Solutions (OPC) Private Limited', 105, 280, null, null, 'center');
+
+                    const fileName = name + '.pdf';
+                    doc.save(fileName);
+                };
+
+                img.onerror = function () {
+                    let yPosition = startY + 80;
+
+                    if (reportText) {
+                        const reportLines = reportText.split('\n');
+                        reportLines.forEach(line => {
+                            doc.text(line, 10, yPosition);
+                            yPosition += 10;
+                        });
+                    }
+
+                    // Additional Notes
+                    if (additionalNotes) {
+                        const additionalNotesLines = additionalNotes.split('\n');
+                        yPosition += 10;
+                        doc.text('Additional Notes:', 10, yPosition);
+                        yPosition += 10;
+                        additionalNotesLines.forEach(line => {
+                            doc.text(line, 10, yPosition);
+                            yPosition += 10;
+                        });
+                    }
+
+                    // Footer
+                    doc.line(10, 260, 200, 260);
+                    doc.text('Ramalayam Street, Gummaluru, Poduru (M), West Godavari Dist., A.P - 534267', 105, 270, null, null, 'center');
+                    doc.text('Somu IT Solutions (OPC) Private Limited', 105, 280, null, null, 'center');
+
+                    const fileName = name + '.pdf';
+                    doc.save(fileName);
+                };
+            }
+            window.downloadPDF = downloadPDF;
+
+            document.getElementById('filter-date').addEventListener('change', filterPatients);
+            document.getElementById('search-bar').addEventListener('input', filterPatients);
+
+            function filterPatients() {
+                const selectedDate = document.getElementById('filter-date').value;
+                const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+                const cards = document.querySelectorAll('.patient-card');
+
+                cards.forEach(card => {
+                    const date = card.querySelector('.card-text:nth-child(4)').innerText.split(': ')[1];
+                    const name = card.querySelector('.card-title').innerText.toLowerCase();
+
+                    if ((selectedDate === '' || date.includes(selectedDate)) && name.includes(searchTerm)) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        function goToDashboard() {
+            window.location.href = "/dashboard";
+        }
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <a class="btn btn-outline-primary back-btn" onclick="goToDashboard()"><i class="bi bi-arrow-left"></i></a>
+        <a href="/logout" class="btn btn-outline-danger logout-btn" style="font-weight: bolder;">Logout</a>
+        <div class="filter-container">
+            <input type="date" id="filter-date" class="form-control">
+            <input type="text" id="search-bar" class="search-bar" placeholder="Search by name...">
+        </div>
+        <div class="header">
+            <img src="/static/somu.png" alt="Logo">
+            <h1>SOMU DIAGNOSTICS</h1>
+        </div>
+        <div class="row">
+            {% for patient in patients %}
+            <div class="col-md-6 patient-card" id="report-{{ loop.index }}">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title" style="margin-top: 5px;">Name: {{ patient.patient_name }}</h5>
+                        <p class="card-text">Age: {{ patient.age }}</p>
+                        <p class="card-text">Test: {{ patient.test if patient.test else patient.other_test }}</p>
+                        <p class="card-text">Date: {{ patient.date }}</p>
+                        <p class="card-text">Referred by: {{ patient.ref_by }}</p>
+                        <p class="card-text" style="display: none;">Report: {{ patient.report }}</p>
+                        <p class="card-text" style="display: none;">Additional Notes: {{ patient.additional_notes }}</p>
+                        <button class="btn btn-primary download-btn" onclick="downloadPDF('report-{{ loop.index }}')">PDF</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

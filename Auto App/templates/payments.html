@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .container {
+            margin-top: 3px;
+        }
+
+        .table {
+            box-shadow: 0 14px 18px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            background: #fff;
+            margin-top: 2px;
+        }
+        .table-container {
+            max-height: 380px; 
+            overflow-y: auto; 
+        }
+
+        h1 {
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            font-weight: bolder;
+            margin-bottom: 20px;
+        }
+
+        .totals-table {
+            margin-top: 20px;
+            background: #fff;
+        }
+
+        .totals-table th, .totals-table td {
+            text-align: center;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .date-input {
+            position: absolute;
+            top: 10px;
+            right: 130px;
+            width: 150px;
+            font-size: 14px;
+        }
+
+        .backBtn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        .no-data-msg {
+            text-align: center;
+            font-style: italic;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <a class="btn btn-outline-danger backBtn" onclick="goToDashboard()"><i class="bi bi-arrow-left"></i></a>
+    <a href="/logout" class="btn btn-outline-danger logout-btn" style="font-weight: bolder;">Logout</a>
+    <div class="container">
+        <h1 class="text-center">Payments</h1>
+        <input type="date" id="payment-date" class="form-control date-input">
+        <div class="table-container">
+            <table class="table table-striped" id="payments-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Patient Name</th>
+                        <th scope="col">Cost</th>
+                        <th scope="col">Mode of Payment</th>
+                        <th scope="col">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="payments-tbody">
+                    <!-- Data will be inserted dynamically -->
+                    {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment.patient_name }}</td>
+                        <td>{{ payment.cost }}</td>
+                        <td>{{ payment.mode_of_payment }}</td>
+                        <td>{{ payment.date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p id="no-data-msg" class="no-data-msg" style="display: none;">No data found for the selected date.</p>
+        </div>
+        <h1 class="text-center">Total Sum</h1>
+        <div class="totals-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Mode of Payment</th>
+                        <th scope="col">Total Received</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Cash</td>
+                        <td id="total-cash">{{ total_costs['cash'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>UPI</td>
+                        <td id="total-upi">{{ total_costs['upi'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Card</td>
+                        <td id="total-card">{{ total_costs['card'] }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        function goToDashboard() {
+            window.location.href = "/dashboard";
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('payment-date');
+            const paymentsTable = document.getElementById('payments-table');
+            const paymentsTbody = document.getElementById('payments-tbody');
+            const noDataMsg = document.getElementById('no-data-msg');
+
+            // Initial fetch for all data
+            fetch('/payments', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.payments.length > 0) {
+                    paymentsTbody.innerHTML = '';
+                    data.payments.forEach(payment => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${payment.patient_name}</td>
+                            <td>${payment.cost}</td>
+                            <td>${payment.mode_of_payment}</td>
+                            <td>${payment.date}</td>
+                        `;
+                        paymentsTbody.appendChild(row);
+                    });
+                    noDataMsg.style.display = 'none';
+                    paymentsTable.style.display = 'table'; 
+                } else {
+                    noDataMsg.style.display = 'block';
+                    paymentsTable.style.display = 'none';
+                }
+
+                document.getElementById('total-cash').textContent = data.total_costs.cash;
+                document.getElementById('total-upi').textContent = data.total_costs.upi;
+                document.getElementById('total-card').textContent = data.total_costs.card;
+            })
+            .catch(error => console.error('Error fetching payments:', error));
+
+            // Event listener for date selection
+            dateInput.addEventListener('change', function() {
+                const selectedDate = this.value;
+                fetch(`/payments?date=${selectedDate}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.payments.length > 0) {
+                        paymentsTbody.innerHTML = '';
+                        data.payments.forEach(payment => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${payment.patient_name}</td>
+                                <td>${payment.cost}</td>
+                                <td>${payment.mode_of_payment}</td>
+                                <td>${payment.date}</td>
+                            `;
+                            paymentsTbody.appendChild(row);
+                        });
+                        noDataMsg.style.display = 'none';
+                        paymentsTable.style.display = 'table'; 
+                    } else {
+                        noDataMsg.style.display = 'block'; 
+                        paymentsTable.style.display = 'none'; 
+                    }
+
+                    document.getElementById('total-cash').textContent = data.total_costs.cash;
+                    document.getElementById('total-upi').textContent = data.total_costs.upi;
+                    document.getElementById('total-card').textContent = data.total_costs.card;
+                })
+                .catch(error => console.error('Error fetching payments:', error));
+            });
+        });
+    </script>
+</body>
+</html>
