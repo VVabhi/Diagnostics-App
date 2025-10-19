@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Details</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        .card {
+            width: 100%;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px gray;
+            background-color: transparent;
+            border-radius: 10px;
+            position: relative;
+        }
+        .search-bar {
+            position: absolute;
+            top: 10px;
+            right: 100px;
+            padding: 5px;
+            width: 145px;
+            border: 1px solid black;
+            border-radius: 15px;
+            background: transparent;
+        }
+        body {
+            background-size: cover;
+            background-position: center;
+            font-family: 'Arial', sans-serif;
+        }
+        .btn-card {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+        .logout-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .backBtn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 52px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <a id="backBtn" class="btn btn-outline-danger backBtn" onclick="goToDashboard()"><i class="bi bi-arrow-left"></i></a>
+        <input type="text" id="searchBar" class="search-bar" placeholder="Search by name..." oninput="filterPatients()">
+        <a href="/logout" class="btn btn-outline-danger logout-btn" style="font-weight: bolder;">Logout</a>
+        <div class="col-12">
+            <h1 class="text-center mb-4" style="font-style: italic; font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;">Patient Details</h1>
+        </div>
+    </div>
+    <div class="container mt-4">
+        <div class="row">
+        </div>
+        <div class="row" id="patientsContainer">
+            {% for patient in patients %}
+            <div class="col-md-4 patient-card" id="card-{{ patient._id }}" data-name="{{ patient.patient_name }}">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ patient.patient_name }}</h5>
+                        <p class="card-text">Age: {{ patient.age }}</p>
+                        <p class="card-text">Sex: {{ patient.sex }}</p>
+                        <p class="card-text">Ref by: {{ patient.ref_by }}</p>
+                        <p class="card-text">Date: {{ patient.date }}</p>
+                        <p class="card-text">Test: {{ patient.test }}</p>
+                        {% if patient.other_test %}
+                        <p class="card-text">Other Test: {{ patient.other_test }}</p>
+                        {% endif %}
+                        <button class="btn btn-primary btn-card" data-toggle="modal" data-target="#reportModal" onclick="setPatientId('{{ patient._id }}')">Report</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reportModalLabel">Enter Report</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="reportForm">
+                        <div class="form-group">
+                            <label for="reportText">Report</label>
+                            <textarea class="form-control" id="reportText" rows="5"></textarea>
+                        </div>
+                        <input type="hidden" id="patientId">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitReport()">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goToDashboard() {
+            window.location.href = "/dashboard";
+        }
+
+        function setPatientId(id) {
+            document.getElementById('patientId').value = id;
+        }
+
+        function submitReport() {
+            var patientId = document.getElementById('patientId').value;
+            var reportText = document.getElementById('reportText').value;
+
+            var data = {
+                patient_id: patientId,
+                report: reportText
+            };
+
+            fetch('/generate_report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                alert(result.message);  // Show success message
+
+                // Remove the card from the HTML after report submission
+                document.getElementById('card-' + patientId).remove();
+                $('#reportModal').modal('hide');
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function filterPatients() {
+            var input = document.getElementById('searchBar');
+            var filter = input.value.toLowerCase();
+            var cards = document.getElementsByClassName('patient-card');
+
+            Array.from(cards).forEach(function(card) {
+                var name = card.getAttribute('data-name').toLowerCase();
+                if (name.includes(filter)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

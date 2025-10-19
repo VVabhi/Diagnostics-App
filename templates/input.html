@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Form</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        async function submitForm(event) {
+            event.preventDefault();
+            
+            const patientName = document.getElementById('patientName').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const age = document.getElementById('age').value;
+            const sex = document.getElementById('sex').value;
+            const refBy = document.getElementById('refBy').value;
+            const date = document.getElementById('date').value;
+            const test = document.getElementById('test').value;
+            const otherTest = document.getElementById('otherTest').value;
+            const cost = document.getElementById('cost').value;
+            const modeOfPayment = document.getElementById('modeOfPayment').value;
+
+            const response = await fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patientName,
+                    phoneNumber,
+                    age,
+                    sex,
+                    refBy,
+                    date,
+                    test,
+                    otherTest,
+                    cost,
+                    modeOfPayment
+                }),
+            });
+
+            if (response.ok) {
+                document.getElementById('patientName').value = '';
+                document.getElementById('phoneNumber').value = '';
+                document.getElementById('age').value = '';
+                document.getElementById('sex').value = '';
+                document.getElementById('refBy').value = '';
+                document.getElementById('date').value = '';
+                document.getElementById('test').value = '';
+                document.getElementById('otherTest').value = '';
+                document.getElementById('cost').value = '';
+                document.getElementById('modeOfPayment').value = '';
+                window.location.href = '/display'; 
+            } else {
+                alert('Failed to submit patient details.');
+            }
+        }
+
+        function checkOtherTest() {
+            const testSelect = document.getElementById('test');
+            const otherTestInput = document.getElementById('otherTest');
+            if (testSelect.value === 'Others') {
+                otherTestInput.style.display = 'block';
+                otherTestInput.required = true;
+            } else {
+                otherTestInput.style.display = 'none';
+                otherTestInput.required = false;
+            }
+        }
+
+        function navigateTotests() {
+            window.location.href = '/display'; 
+        }
+
+        function goToDashboard() {
+            window.location.href = "/dashboard";
+        }
+    </script>
+    <style>
+        body {
+            background: #D3CCE3;
+            background: -webkit-linear-gradient(to right, #E9E4F0, #b5eee1);
+            background: linear-gradient(to right, #E9E4F0, #D3CCE3);
+        }
+
+        #card {
+            background: #D3CCE3;
+            box-shadow: 4 2 10px rgb(225, 222, 222);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: -18px;
+        }
+        
+        .form-control {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid black;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .form-control:focus {
+            border-bottom-color: black;
+            box-shadow: none;
+        }
+
+        .form-control::placeholder {
+            color: #999;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header img {
+            margin-right: 10px;
+        }
+
+        .header h1 {
+            font-size: 3.0em;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            margin-top: -2px;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .header img {
+                margin-bottom: 10px;
+            }
+        }
+
+        .container {
+            margin-top: 1px;
+        }
+
+        .backBtn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        form {
+            margin-top: -8px;
+        }
+    </style>
+</head>
+<body>
+    <a id="backBtn" class="btn btn-outline-danger backBtn" onclick="goToDashboard()"><i class="bi bi-arrow-left"></i></a>
+    <a href="/logout" class="btn btn-outline-danger logout-btn" style="font-weight: bolder;">Logout</a>
+    <div class="container">
+        <div class="row justify-content-center mt-3">
+            <div class="col-sm-6">
+                <div class="header">
+                    <img src="/static/somu.png" alt="Logo" height="50" width="55">
+                    <h1 style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">Patient Registration</h1><br>
+                </div>
+                <div id="card" class="card">
+                    <form onsubmit="submitForm(event)">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="patientName">Patient Name</label>
+                                <input type="text" id="patientName" name="patientName" class="form-control" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="phoneNumber">Phone Number</label>
+                                <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="age">Age</label>
+                                <input type="number" id="age" name="age" class="form-control" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="sex">Sex</label>
+                                <select id="sex" name="sex" class="form-control" required>
+                                    <option value="" disabled selected>Select Sex</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="others">Others</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="refBy">Ref. By</label>
+                            <input type="text" id="refBy" name="refBy" class="form-control" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="date">Date</label>
+                                <input type="date" id="date" name="date" class="form-control" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="test">Test</label>
+                                <select id="test" name="test" class="form-control" onchange="checkOtherTest()" required>
+                                    <option value="" disabled selected>Select Test</option>
+                                    <optgroup label="HAEMOTOLOGY">
+                                        <option value="Hemogram">Hemogram</option>
+                                        <option value="ESR">E.S.R</option>
+                                        <option value="HB">HB%</option>
+                                        <option value="PlateletsCount">Platelets count</option>
+                                        <option value="AEC">AEC</option>
+                                        <option value="BTC">B.T & C.T</option>
+                                        <option value="BloodGroup">B.Group & Rh</option>
+                                        <option value="PTINR">PT. INR</option>
+                                        <option value="APTT">APTT</option>
+                                    </optgroup>
+                                    <optgroup label="SEROLOGY">
+                                        <option value="VDRL">V.D.R.L</option>
+                                        <option value="TPHA">T.P.H.A</option>
+                                        <option value="WIDAL">WIDAL</option>
+                                        <option value="MPQBC">MP / QBC</option>
+                                        <option value="HbsAg">HbsAg</option>
+                                        <option value="HCV">HCV</option>
+                                        <option value="RetroVirus">RETRO VIRUS</option>
+                                        <option value="Mantoux">MANTOUX Test</option>
+                                    </optgroup>
+                                    <optgroup label="ELECTROLYTES">
+                                        <option value="Sodium">SODIUM</option>
+                                        <option value="Potassium">POTASSIUM</option>
+                                        <option value="Calcium">ca++</option>
+                                        <option value="Chloride">CI</option>
+                                    </optgroup>
+                                    <optgroup label="BIO-CHEMISTRY">
+                                        <option value="FBS">FBS</option>
+                                        <option value="PPBS">PPBS</option>
+                                        <option value="RBS">RBS</option>
+                                        <option value="BloodUrea">Blood Urea</option>
+                                        <option value="SerumCreatinine">Serum Creatinine</option>
+                                        <option value="UricAcid">Uric Acid</option>
+                                        <option value="TotalBilirubin">Total Bilirubin</option>
+                                        <option value="SGOT">S.G.O.T</option>
+                                        <option value="SGPT">S.G.P.T</option>
+                                        <option value="Amylase">AMYLASE</option>
+                                        <option value="TotalCholesterol">Total Cholesterol</option>
+                                        <option value="Triglycerides">TRIGLYCERIDES</option>
+                                        <option value="LFT">L.F.T</option>
+                                        <option value="LipidProfile">Lipid Profile</option>
+                                        <option value="HBA1C">HB A1C</option>
+                                        <option value="CKMB">CK MB & CPK</option>
+                                        <option value="Calcium">Calcium</option>
+                                        <option value="TroponineT">Troponine - T</option>
+                                        <option value="TroponineI">Troponine - I</option>
+                                        <option value="RATest">R.A Test</option>
+                                        <option value="CRP">C.R.P</option>
+                                        <option value="ASOTitre">A.S.O Titre</option>
+                                    </optgroup>
+                                    <optgroup label="URINE ANALYSIS">
+                                        <option value="AlbSugarMicro">ALB, SUGAR, MICRO</option>
+                                        <option value="UrineAnalysis">URINE ANALYSIS</option>
+                                        <option value="Urobilinogen">UROBILINOGEN</option>
+                                        <option value="KetoneBodies">KETONEBODIES</option>
+                                        <option value="PregnancyTest">PREGNANCY TEST</option>
+                                        <option value="24hrsUrinaryProtein">24hrs. Urinary Protein</option>
+                                        <option value="StoolAnalysis">STOOL ANALYSIS</option>
+                                        <option value="SemenAnalysis">SEMEN ANALYSIS</option>
+                                    </optgroup>
+                                    <optgroup label="MICRO BIOLOGY">
+                                        <option value="Urine">URINE</option>
+                                        <option value="Blood">BLOOD</option>
+                                        <option value="Pus">PUS</option>
+                                        <option value="CSF">CSF</option>
+                                    </optgroup>
+                                    <optgroup label="HORMONES">
+                                        <option value="T3T4TSH">T3, T4, TSH</option>
+                                        <option value="LH">LH</option>
+                                        <option value="FSH">FSH</option>
+                                        <option value="Prolactin">PROLACTINE</option>
+                                        <option value="PSA">PSA</option>
+                                        <option value="ANA">ANA</option>
+                                        <option value="25OhVitD3">25Oh Vit D3</option>
+                                        <option value="CA125">CA - 125</option>
+                                        <option value="VitaminB12">Vitamin B12</option>
+                                        <option value="BHCG">B - HCG</option>
+                                        <option value="Testosterone">Testosterone</option>
+                                    </optgroup>
+                                    <option value="Others">Others</option>
+                                </select>
+                                <input type="text" id="otherTest" name="otherTest" class="form-control mt-2" placeholder="Enter Other Test" style="display:none;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="cost">Cost</label>
+                                <input type="number" id="cost" name="cost" class="form-control" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="modeOfPayment">Mode of Payment</label>
+                                <select id="modeOfPayment" name="modeOfPayment" class="form-control" required>
+                                    <option value="" disabled selected>Select Mode of Payment</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="upi">UPI</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group d-flex justify-content-between mt-5">
+                            <button type="submit" class="btn btn-outline-success">Submit</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="navigateTotests()">Details</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
